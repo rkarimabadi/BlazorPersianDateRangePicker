@@ -85,7 +85,7 @@ Date Range Picker for [Blazor](https://blazor.net/)
 ````
 
 ### استفاده کمی پیچیده تر:
-Using custom markup for picker.
+می توانید از markup اختصاصی خودتان برای picker استفاده کنید.
 ````C#
 @using BlazorDateRangePicker
 
@@ -271,7 +271,7 @@ services.AddDateRangePicker(config => ..., configName: "CustomConfig");
 |InitialEndTime|TimeSpan|TimeSpan.FromDays(1).AddTicks(-1)|Initial end time value to show in the picker before any date selected|
 |TimeEnabledFunction|Func<DateTimeOffset?, Task<TimeSettings>>|null|Returns time available for selection.|
 
-## Events
+## رخدادها
 
 | Name | Type | Description |
 |------|------|-------------|
@@ -285,7 +285,7 @@ services.AddDateRangePicker(config => ..., configName: "CustomConfig");
 |OnSelectionStart|DateTimeOffset|An event that is invoked when StartDate is selected|
 |OnSelectionEnd|DateTimeOffset|An event that is invoked when EndDate is selected but before "Apply" button is clicked|
 
-## Methods
+## متدها
 
 | Name |Description |
 |------|------------|
@@ -295,7 +295,7 @@ services.AddDateRangePicker(config => ..., configName: "CustomConfig");
 |Reset|Rest picker.|
 |virtual InvokeClickOutside|A JSInvocable callback to handle outside click. When inherited can be overridden to modify outside click closing behavior.|
 
-## Types
+## تایپ‌ها
 
 DateRange:
 ````C#
@@ -306,127 +306,19 @@ public class DateRange
 }
 ````
 
->Note: 
->DateRange Start and End is in local timezone. 
+>نکته: 
+>DateRange Start و End براساس منطقه زمانی محلی می‌باشد 
 >
->The Start property is the start of a selected day (dateTime.Date).
+>خصوصیت Start شروع روز انتخاب شده است (dateTime.Date).
 >
->The End property is the end of a selected day (dateTime.Date.AddDays(1).AddTicks(-1)).
+>خصوصیت End پایان روز انتخاب شده است (dateTime.Date.AddDays(1).AddTicks(-1)).
 
 ## Changelog
+### 0.0.0
 
-## 4.2.0
+1. اعمال تغییرات اولیه در کامپوننت اصلی
+2. ایجاد یک نسخه اولیه قابل استفاده
 
-1. Fixed same date selection issue when TimePicker is enabled
-2. Fixed predefined date ranges with time
-3. Made `ChosenLabel` property public
-4. Added net7 support
-
-### 4.1.0
-
-1. Fixed months adjustment issue (#69)
-2. Fixed problems with dates 01/01/0001 and 31/12/9999
-
-### 4.0.0
-
-1. Updated to NET 6
-2. Fixed issue with handling of DateTime.MinValue and DateTime.MaxValue dates (#65)
-
-### 3.6.0
-
-1. Disable AutoApply when TimePicker is enabled (#57)
-
-### 3.5.0
-
-1. Added time picker
-2. Added Prerender property (ability to render DOM only after click on the input) (#52)
-
-### 3.4.0
-
-1. Added net 6 support
-
-### 3.3.0
-
-1. Fixed issue with month & year selection (#45)
-
-### 3.2.0
-
-1. Added ability to reset the picker by clearing the picker input (#42)
-2. Added `ResetOnClear` property
-3. Added `OnReset` event
-4. Added `Reset` method
-
-###  2.13.0
-
-1. Added ability to change input field `id` attribute (#41)
-
-###  2.12.0
-
-1. Added new `OnSelectionEnd` event
-2. Added new demo example which demonstrates how to override day click handlers
-3. Exposed some internals that might be useful for picker customization
-
-### 2.11.0
-
-1. Fix month/year select box issue (#34, #35)
-
-### 2.10.0
-
-1. Add `DayTemplate` property to customize picker day cell
-
-2. Demo applications refactored and updated with new examples 
-
-### 2.9.0
-
-1. Fix issue with two-way dates binding (#32)
-2. Fix issue with date range label selection
-3. Fix issue with single date selection mode
-4. `OnSelectionStart` event now returns selected start date
-
-### 2.8.0
-
-1. Add OnSelectionStart event (#29)
-2. Add MinSpan property (#29)
-
-### 2.7.0
-
-1. Breaking change! CustomDateFunction changed from Func<DateTimeOffset, bool> to Func<DateTimeOffset, object> so that it can return string, bool, Task<string>, Task<bool>.
-2. OnMonthChangedAsync event added to support data loading indication.
-3. Fixed issue with compilerconfig.json file (#27).
-
-### 2.6.0
-
-1. Add inline mode (see `Inline` property, and last example in demo application) (#20)
-
-### 2.5.0
-
-1. Add `OnMonthChanged` event (#19)
-
-### 2.4.0
-
-1. Add `ButtonsTemplate` property to make custom picker buttons possible (#17)
-
-### 2.3.0
-
-1. Fix an issue with month selection in calendars (#14).
-2. Add AutoAdjustCalendars property.
-3. Expose LeftCalendar and RightCalendar DateRangePicker options (ability to select the months manually).
-4. Fix an issue with FirstDayOfWeek property when the first day is not sunday or monday.
-
-### 2.2.0
-
-1. Fixed performance issue with js outside click handler.
-
-### 2.1.0
-
-1. OnCancel event added.
-
-### 2.0.0
-
-1. Updated to support .NET Core 3.1.0 projects
-2. Now in Blazor WebAssembly we need to add library static assets manually
-
-In .NET Core 3.0.0 projects you should stay on 1.\*.\* version
  
 ## License
 
