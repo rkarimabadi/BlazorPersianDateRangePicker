@@ -7,54 +7,51 @@ Date Range Picker for [Blazor](https://blazor.net/)
 
 ## [Live Demo](https://blazordaterangepicker.azurewebsites.net/)
 
-This date range picker component is a port of js [DateRangePicker](https://github.com/dangrossman/daterangepicker/), rewritten using C# as a Razor Component.
-It creates a dropdown menu from which a user can select a range of dates.
+این کامپوننت انتخاب محدود زمانی، پورت شده ای از کامپوننت بسیار متداول جاوااسکریپتی [DateRangePicker](https://github.com/dangrossman/daterangepicker/) می باشد که به زبان #C دوباره بازنویسی شده تا بعنوان یک کامپوننت Blazor بتوان از آن استفاده کرد.
 
-There is no dependency with jquery, moment, or bootstrap
+این کامپوننت یک تقویم بصورت دراپ‌داون ایجاد می کند که کاربر می تواند محدوده ای از تاریخ ها را از آن انتخاب کند.
 
-Features include limiting the selectable date range, localizable strings and date formats,
-a single date picker mode, and predefined date ranges.
+باتوجه به وجود کتابخانه بسیار کاربردی Persian Calendar از System.Globalization، هیچ وابستگی به jquery، moment یا bootstrap وجود ندارد.
 
-JS Interop is used for popup positioning and outside click handling. With future releases of ASP.NET Core Blazor it will be possible without js.
+مهمترین ویژگی های کامپوننت عبارتند از: محدود کردن محدوده تاریخ قابل انتخاب، متن‌ها و لیبل‌های قابل بومی سازی و قالب های تاریخ از پیش تعریف شده و همچنین حالت انتخابگر تاریخ و محدوده تاریخ از پیش تعریف شده.
 
-## Get Started
+بطور بسیار محدود از JS Interop برای موقعیت یابی popup  و مدیریت کلیک‌های خارج از محدوده کامپوننت استفاده شده و با توجه به امکانات نسخه های بعدی ASP.NET Core Blazor، نسخه بدون نیاز به js نیز امکان پذیر خواهد بود.
 
-Download library from NuGet in the NuGet Package Manager, or by executing the following command in the Package Manager Console:
-````shell
-Install-Package BlazorDateRangePicker
-````
+## اولین گام‌ها برای شروع
 
-Include these lines into your _Host.cshtml (or *index.html* for Blazor WebAssembly) file `<head></head>` section:
+پروژه برنامه را از اینجا دانلود یا کلون کنید و به برنامه خود اضافه کنید.
+
+خط های زیر را به فایل  _Host.cshtml (یا *index.html* برای Blazor WebAssembly)  در قسمت `<head></head>` اضافه کنید:
 
 ````html
 <script src="_content/BlazorDateRangePicker/clickAndPositionHandler.js"></script>
 <link rel="stylesheet" href="_content/BlazorDateRangePicker/daterangepicker.min.css" />
 ```` 
 
-### Use the component:
+### و به این صورت از کامپوننت استفاده کنید:
 
 ````C#
 @using BlazorDateRangePicker
 
 <DateRangePicker/>
 ````
-Gives you:
+که در کد رندر شده به صورت زیر می آید:
 ````HTML
 <input type="text"/>
 ````
-### Tag attributes will be passed to input field:
+### همچنین در صورت استفاده از Tag Attribute ها در تگ کامپوننت، به تگ Input اعمال خواهند شد:
 
 ````C#
 @using BlazorDateRangePicker
 
 <DateRangePicker class="form-control form-control-sm" placeholder="Select dates..." />
 ````
-Gives you:
+به این صورت اعمال می شود:
 ````HTML
 <input type="text" class="form-control form-control-sm" placeholder="Select dates..."/>
 ````
 
-### Setting properties:
+### تنظیم خصوصیات:
 ````C#
 @using BlazorDateRangePicker
 
@@ -87,35 +84,35 @@ Gives you:
 }
 ````
 
-### More complex usage:
+### استفاده کمی پیچیده تر:
 Using custom markup for picker.
 ````C#
 @using BlazorDateRangePicker
 
-<DateRangePicker Culture="@(System.Globalization.CultureInfo.GetCultureInfo("en-US"))">
+<DateRangePicker Culture="@(System.Globalization.CultureInfo.GetCultureInfo("fa-IR"))">
     <PickerTemplate>
         <div id="@context.Id" @onclick="context.Toggle" style="background: #fff; cursor: pointer; padding: 5px 10px; width: 250px; border: 1px solid #ccc;">
             <i class="oi oi-calendar"></i>&nbsp;
-            <span>@context.FormattedRange @(string.IsNullOrEmpty(context.FormattedRange) ? "Choose dates..." : "")</span>
+            <span>@context.FormattedRange @(string.IsNullOrEmpty(context.FormattedRange) ? "انتخاب بازه زمانی ..." : "")</span>
             <i class="oi oi-chevron-bottom float-right"></i>
         </div>
     </PickerTemplate>
 </DateRangePicker>
 ````
-Set id="@context.Id" for outside click handling to root element.
+برای کنترل کلیک‌های خارج از محدوده کامپوننت، مقدار id="@context.Id" را تنظیم می کنیم. 
 
-Custom buttons:
+شخصی سازی دکمه ها:
 
 ````C#
 <DateRangePicker @bind-StartDate="StartDate" @bind-EndDate="EndDate">
     <ButtonsTemplate>
         <button class="cancelBtn btn btn-sm btn-default" 
-            @onclick="@context.ClickCancel" type="button">Cancel</button>
+            @onclick="@context.ClickCancel" type="button">انصراف</button>
         <button class="cancelBtn btn btn-sm btn-default" 
-            @onclick="@(e => ResetClick(e, context))" type="button">Reset</button>
+            @onclick="@(e => ResetClick(e, context))" type="button">از نو</button>
         <button class="applyBtn btn btn-sm btn-primary" @onclick="@context.ClickApply"
             disabled="@(context.TStartDate == null || context.TEndDate == null)" 
-            type="button">Apply</button>
+            type="button">اعمال</button>
     </ButtonsTemplate>
 </DateRangePicker>
 
@@ -134,10 +131,9 @@ Custom buttons:
     }
 }
 ````
+برای اینکه وضعیت picker را قبل از اینکه کاربر بر روی دکمه 'اعمال' کلیک کند داشته باشید، از خصوصیت Picker.TStartDate و Picker.TEndDate استفاده کنید.  
 
-Use Picker.TStartDate and Picker.TEndDate properties to get current picker state before a user clicks the 'apply' button.
-
-### One configuration for all pickers
+### تنظیم متمرکز برای تمام جاهایی که کامپوننت نمایش داده می شود
 
 ````C#
 #Startup.cs
@@ -145,15 +141,79 @@ Use Picker.TStartDate and Picker.TEndDate properties to get current picker state
 using BlazorDateRangePicker;
 
 //ConfigureServices
-services.AddDateRangePicker(config =>
-{
-    config.Attributes = new Dictionary<string, object>
-    {
-        { "class", "form-control form-control-sm" }
-    };
-});
+            builder.Services.AddDateRangePicker(config =>
+            {
+                config.Culture = PersianDateExtensionMethods.GetPersianCulture();
+                config.ApplyLabel = "اعمال";
+                config.CancelLabel = "انصراف";
+                config.Opens = SideType.Left;
+                config.CustomRangeLabel = "بازه دلخواه";
+                config.AutoApply = true;
+                config.AutoAdjustCalendars = true;
+                config.ShowISOWeekNumbers = true;
+                config.ShowDropdowns = true;
+                config.FirstDayOfWeek = DayOfWeek.Saturday;
+                config.ShowCustomRangeLabel = true;
+                config.Prerender = true;
+                config.Ranges = new Dictionary<string, DateRange> {
+                        { "امروز", new DateRange
+                            {
+                                Start = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day),
+                                End = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day)
+                            }
+                        } ,
+                        { "دیروز", new DateRange
+                            {
+                                Start = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day).AddDays(-1),
+                                End = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day).AddDays(-1)
+                            }
+                        } ,
+                        { "هفت روز گذشته", new DateRange
+                            {
+                                Start = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day).AddDays(-6),
+                                End = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day)
+                            }
+                        } ,
+                        { "سی روز گذشته", new DateRange
+                            {
+                                Start = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day).AddMonths(-1),
+                                End = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day)
+                            }
+                        } ,
+                        { "این ماه", new DateRange
+                            {
+                                Start = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1),
+                                End = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(1).AddTicks(-1)
+                            }
+                        } ,
+                        { "ماه گذشته" , new DateRange
+                            {
+                                Start = new DateTime(DateTime.Now.AddMonths(-1).Year, DateTime.Now.AddMonths(-1).Month, 1),
+                                End = new DateTime(DateTime.Now.AddMonths(-1).Year, DateTime.Now.AddMonths(-1).Month, 1).AddMonths(1).AddTicks(-1)
+                            }
+                        } ,
+                        { "شش ماه گذشته" , new DateRange
+                            {
+                                Start = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day).AddMonths(-6),
+                                End = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day)
+                            }
+                        } ,
+                        { "یک سال گذشته" , new DateRange
+                            {
+                                Start = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day).AddYears(-1),
+                                End = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day)
+                            }
+                        },
+                        { "امسال" , new DateRange
+                            {
+                                Start = new DateTime(DateTime.Now.Year, 1, 1),
+                                End = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day)
+                            }
+                        }
+                 };
+            });
 ````
-It's possible to create multiple named config instances and bind it to picker with "Config" property.
+همچنین می توانید چندین تنظیم متفاوت با نام‌های متفاوت ایجاد کنید و به picker با خصوصیت "Config" اعمال کنید. 
 
 ````C#
 services.AddDateRangePicker(config => ..., configName: "CustomConfig");
@@ -161,9 +221,9 @@ services.AddDateRangePicker(config => ..., configName: "CustomConfig");
 <DateRangePicker Config="CustomConfig" />
 ````
 
-## Properties
+## خصوصیات
 
-| Name | Type | DefaultValue |  Description |
+| نام | نوع | مقدار پیش‌فرض |  توضیحات |
 |------|------|--------------|--------------|
 |StartDate|DateTimeOffset?|null|The beginning date of the initially selected date range.|
 |EndDate|DateTimeOffset?|null|The end date of the initially selected date range.|
