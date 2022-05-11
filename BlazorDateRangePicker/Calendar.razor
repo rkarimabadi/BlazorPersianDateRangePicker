@@ -11,7 +11,7 @@
             {
                 <th></th>
             }
-            <th class="@(PrevBtnVisible ? "prev available" : "")" @onclick="@(_ => PreviousMonth(PrevBtnVisible))"><span></span></th>
+            <th class="@(PrevBtnVisible ? "prev available" : "")" @onclick="@(_ => PrevBtnVisible ? PreviousMonth() : null)"><span></span></th>
             <th colspan="5" class="month">
                 @if (Picker.ShowDropdowns == true)
                 {
@@ -20,7 +20,7 @@
                     <select class="monthselect" @bind="@CurrentMonth">
                         @for (var m = 1; m < 13; m++)
                         {
-                            var enabled = (!inMinYear || (m >= Picker.MinDate?.Month)) && (!inMaxYear || (m <= Picker.MaxDate?.Month));
+                            var enabled = (!inMinYear || (m >= Picker.MinDate?.MonthInPersianCalendar())) && (!inMaxYear || (m <= Picker.MaxDate?.MonthInPersianCalendar()));
                             var selected = m == CurrentMonth;
                             <option @key="m" selected="@selected" disabled="@(!enabled)" value="@m">
                                 @Picker.Culture.DateTimeFormat.GetMonthName(m)
@@ -37,10 +37,11 @@
                 }
                 else
                 {
-                    @Picker.Culture.DateTimeFormat.GetMonthName(CalendarData.Month.Month)<text>&nbsp;</text>@CalendarData.Month.Year
+                   @* @Picker.Culture.DateTimeFormat.GetMonthName(CalendarData.Month.Month)<text>&nbsp;</text>@CalendarData.Month.Year*@ 
+                   @Picker.Culture.DateTimeFormat.GetMonthName(CalendarData.Month.MonthInPersianCalendar())<text>&nbsp;</text>@CalendarData.Month.YearInPersianCalendar()
                 }
             </th>
-            <th class="@(NextBtnVisible ? "next available" : "")" @onclick="@(_ => NextMonth(NextBtnVisible))"><span></span></th>
+            <th class="@(NextBtnVisible ? "next available" : "")" @onclick="@(_ => NextBtnVisible ? NextMonth() : null)"><span></span></th>
 
         </tr>
         <tr>
@@ -76,19 +77,6 @@
                
                 @foreach (var dt in row)
                 {
-                    if (dt.OutOfRange)
-                    {
-                        @if (Picker.DayTemplate != null)
-                        {
-                            @Picker.DayTemplate(dt)
-                        }
-                        else
-                        {
-                            <td class="disabled">-</td>
-                        }
-                        continue;
-                    }
-
                     if (dt.Hover == null) dt.Hover = () => OnMouseOverDate(dt.Day);
                     if (dt.Click == null) dt.Click = () => ClickDate(dt);
 
@@ -101,7 +89,7 @@
                         }
                         else
                         {
-                            @dt.Day.Day
+                            @dt.Day.DayInPersianCalendar()
                         }
                     </td>
                 }

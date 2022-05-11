@@ -412,7 +412,7 @@ namespace BlazorDateRangePicker
         public CalendarType LeftCalendar { get; set; }
         public CalendarType RightCalendar { get; set; }
 
-        public string ChosenLabel { get; private set; }
+        internal string ChosenLabel { get; set; }
         internal bool CalendarsVisible { get; set; }
         internal bool Loading { get; set; }
         public DateTimeOffset? HoverDate { get; set; }
@@ -574,9 +574,9 @@ namespace BlazorDateRangePicker
             }
 
             var startDateParsed = DateTimeOffset.TryParseExact(dateStrings[0], DateFormat, Culture,
-                System.Globalization.DateTimeStyles.AssumeUniversal, out var startDate);
+                System.Globalization.DateTimeStyles.None, out var startDate);
             var endDateParsed = DateTimeOffset.TryParseExact(dateStrings[1], DateFormat, Culture,
-                System.Globalization.DateTimeStyles.AssumeUniversal, out var endDate);
+                System.Globalization.DateTimeStyles.None, out var endDate);
 
             if (startDateParsed && startDate < MinDate)
             {
@@ -611,7 +611,7 @@ namespace BlazorDateRangePicker
 
             if (startDateParsed && SingleDatePicker == true)
             {
-                if (startDate.TimeOfDay == TimeSpan.Zero) startDate = SafeSetStartTime(startDate);
+                if (startDate.TimeOfDay == TimeSpan.Zero) startDate = startDate.Date.Add(StartTime);
 
                 TStartDate = startDate;
                 TEndDate = startDate;
@@ -622,8 +622,8 @@ namespace BlazorDateRangePicker
                 && (!minDate.HasValue || startDate >= MinDate)
                 && (!maxDate.HasValue || endDate <= MaxDate))
             {
-                if (startDate.TimeOfDay == TimeSpan.Zero) startDate = SafeSetStartTime(startDate);
-                if (endDate.TimeOfDay == TimeSpan.Zero) endDate = SafeSetEndTime(endDate);
+                if (startDate.TimeOfDay == TimeSpan.Zero) startDate = startDate.Date.Add(StartTime);
+                if (endDate.TimeOfDay == TimeSpan.Zero) endDate = endDate.Date.Add(EndTime);
 
                 TStartDate = startDate;
                 TEndDate = endDate;
@@ -639,7 +639,7 @@ namespace BlazorDateRangePicker
             return Task.CompletedTask;
         }
 
-        public void LostFocus(FocusEventArgs _)
+        public void LostFocus(FocusEventArgs e)
         {
             EditText = null;
         }
@@ -664,15 +664,8 @@ namespace BlazorDateRangePicker
             else
             {
                 var dates = Ranges[label];
-
-                if (TimePicker == true)
-                {
-                    StartTime = dates.Start.TimeOfDay;
-                    EndTime = dates.End.TimeOfDay;
-                }
-
-                TStartDate = SafeSetStartTime(dates.Start);
-                TEndDate = SafeSetEndTime(dates.End.Date);
+                TStartDate = dates.Start.Add(StartTime);
+                TEndDate = dates.End.Date.Add(EndTime);
 
                 if (AlwaysShowCalendars != true)
                 {
@@ -686,7 +679,7 @@ namespace BlazorDateRangePicker
         {
             var leftMonth = date;
             var rightMonth = LinkedCalendars == true
-                ? date.AddMonths(1)
+                ? date.AddMonthsInPersianCalendar(1)
                 : (DateTimeOffset?)null;
             return MonthChanged(leftMonth, rightMonth);
         }
@@ -695,7 +688,7 @@ namespace BlazorDateRangePicker
         {
             var rightMonth = date;
             var leftMonth = LinkedCalendars == true
-                ? date.AddMonths(-1)
+                ? date.AddMonthsInPersianCalendar(-1)
                 : (DateTimeOffset?)null;
 
             return MonthChanged(leftMonth, rightMonth);
@@ -738,25 +731,24 @@ namespace BlazorDateRangePicker
         {
             StartTime = start ?? StartTime;
             EndTime = end ?? EndTime;
-
-            TStartDate = TStartDate.HasValue ? SafeSetStartTime(TStartDate.Value) : null;
-            TEndDate = TEndDate.HasValue ? SafeSetEndTime(TEndDate.Value) : null;
+            TStartDate = TStartDate?.Date.Add(StartTime);
+            TEndDate = TEndDate?.Date.Add(EndTime);
         }
 
         public virtual async Task ClickDate(DateTimeOffset date)
         {
             HoverDate = null;
-            if (TEndDate.HasValue || TStartDate == null || date.Date.Add(EndTime) < TStartDate)
+            if (TEndDate.HasValue || TStartDate == null || date < TStartDate)
             {
-                // picking start
+                //picking start
                 TEndDate = null;
-                TStartDate = SafeSetStartTime(date);
-                await OnSelectionStart.InvokeAsync(TStartDate.Value);
+                TStartDate = date.Date.Add(StartTime);
+                await OnSelectionStart.InvokeAsync(date.Date);
             }
             else
             {
                 // picking end
-                TEndDate = SafeSetEndTime(date);
+                TEndDate = date.Date.Add(EndTime);
                 await OnSelectionEnd.InvokeAsync(TEndDate.Value);
                 if (AutoApply == true)
                 {
@@ -764,44 +756,15 @@ namespace BlazorDateRangePicker
                 }
             }
 
-            if (SingleDatePicker == true)
+            if (SingleDatePicker == true )
             {
-                TStartDate = SafeSetStartTime(date);
+                TStartDate = date.Date.Add(StartTime);
                 TEndDate = TStartDate;
                 if (AutoApply == true) await ClickApply(null);
             }
 
             await LeftCalendar.CalculateCalendar();
             await RightCalendar.CalculateCalendar();
-        }
-
-        private DateTimeOffset SafeSetStartTime(DateTimeOffset date) => SafeSetTime(date, true);
-
-        private DateTimeOffset SafeSetEndTime(DateTimeOffset date) => SafeSetTime(date, false);
-
-        private DateTimeOffset SafeSetTime(DateTimeOffset date, bool startTime)
-        {
-            var time = TimePicker == true
-                ? startTime ? StartTime : EndTime
-                : startTime ? TimeSpan.Zero : TimeSpan.FromDays(1).Add(TimeSpan.FromTicks(-1));
-
-            var isFirstDay = date.Day == 1 && date.Year == 0001 && date.Month == 1;
-            var isLastDay = date.Day == 31 && date.Year == 9999 && date.Month == 12;
-
-            if (isFirstDay)
-            {
-                var offset = new DateTimeOffset(date.Date.AddDays(1)).Offset;
-                return date.Date.Add(time < offset ? time + offset : time);
-            }
-            else if (isLastDay)
-            {           
-                var offset = new DateTimeOffset(date.Date.AddDays(-1)).Offset;
-                return date.Date.Add(time - offset > TimeSpan.FromDays(1) ? time + offset : time);
-            }
-            else
-            {
-                return date.Date.Add(time);
-            }
         }
 
         private async Task OnHoverDate(DateTimeOffset date)
@@ -886,32 +849,28 @@ namespace BlazorDateRangePicker
             if (AutoAdjustCalendars == true || Prerender != true) await AdjustCalendars();
         }
 
-        public virtual async Task AdjustCalendars()
+        public async Task AdjustCalendars()
         {
             Prerender = true;
 
             var newLeftMonth = TStartDate ?? DateTime.Today;
             var newRightMonth = LinkedCalendars == true
-                ? newLeftMonth.AddMonths(1)
-                : (TEndDate ?? newLeftMonth.AddMonths(1));
-
-            if (newLeftMonth.Month == newRightMonth.Month
-                && newLeftMonth.Year == newRightMonth.Year)
-            {
-                if (newRightMonth < DateTime.MaxValue.AddMonths(-1))
-                {
-                    newRightMonth = newRightMonth.AddMonths(1);
-                }
-            }
+                ? newLeftMonth.AddMonthsInPersianCalendar(1)
+                : (TEndDate ?? newLeftMonth.AddMonthsInPersianCalendar(1));
 
             var needAdjust =
-                LeftCalendar?.Month.Month != newLeftMonth.Month
-                || LeftCalendar?.Month.Year != newLeftMonth.Year
-                || RightCalendar?.Month.Month != newRightMonth.Month
-                || RightCalendar?.Month.Year != newRightMonth.Year;
+                LeftCalendar?.Month.MonthInPersianCalendar() != newLeftMonth.MonthInPersianCalendar()
+                || LeftCalendar?.Month.YearInPersianCalendar() != newLeftMonth.YearInPersianCalendar()
+                || RightCalendar?.Month.MonthInPersianCalendar() != newRightMonth.MonthInPersianCalendar()
+                || RightCalendar?.Month.YearInPersianCalendar() != newRightMonth.YearInPersianCalendar();
 
             if (needAdjust)
             {
+                if (newLeftMonth.MonthInPersianCalendar() == newRightMonth.MonthInPersianCalendar()
+                    && newLeftMonth.YearInPersianCalendar() == newRightMonth.YearInPersianCalendar())
+                {
+                    newRightMonth = newRightMonth.AddMonthsInPersianCalendar(1);
+                }
                 await MonthChanged(newLeftMonth, newRightMonth);
             }
         }

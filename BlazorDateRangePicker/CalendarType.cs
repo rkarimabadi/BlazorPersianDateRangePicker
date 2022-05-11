@@ -13,14 +13,17 @@ namespace BlazorDateRangePicker
 {
     public class CalendarType
     {
-        private int DaysInMonth => DateTime.DaysInMonth(Month.Year, Month.Month);
+        private int DaysInMonth => Month.DaysInMonthInPersianCalendar();
+        private int LastMonth => FirstDay.AddMonthsInPersianCalendar(-1).MonthInPersianCalendar();
+        private int LastYear => FirstDay.AddMonthsInPersianCalendar(-1).YearInPersianCalendar();
+        private int DaysInLastMonth => Month.DaysInLastMonthInPersianCalendar(LastYear, LastMonth);
         private DayOfWeek DayOfWeek => FirstDay.DayOfWeek;
         internal DayOfWeek FirstDayOfWeek { get; set; }
 
         internal SideType Side { get; private set; }
 
-        internal DateTimeOffset FirstDay => new DateTimeOffset(Month.Year, Month.Month, 1, 0, 0, 0, TimeSpan.Zero);
-        internal DateTimeOffset LastDay => new DateTime(Month.Year, Month.Month, DaysInMonth);
+        internal DateTimeOffset FirstDay => Month.FirstDayOfMonthInPersianCalendar();
+        internal DateTimeOffset LastDay => Month.LastDayOfMonthInPersianCalendar();
 
         public DateTimeOffset Month { get; private set; } = DateTime.Today;
 
@@ -48,12 +51,20 @@ namespace BlazorDateRangePicker
                 calendar.Add(new List<CalendarItem>());
             }
 
-            var startDayOffset = (int)FirstDayOfWeek - (int)DayOfWeek;
-            if (startDayOffset > 0) startDayOffset -= 7;
-            if (DayOfWeek == FirstDayOfWeek) startDayOffset = -7;
+            var startDay = DaysInLastMonth - (int)DayOfWeek + (int)FirstDayOfWeek + 1;
+            if (startDay > DaysInLastMonth)
+            {
+                startDay -= 7;
+            }
+            if (DayOfWeek == FirstDayOfWeek)
+            {
+                startDay = DaysInLastMonth - 6;
+            }
+
+            var curDate = new DateTimeOffset(Month.ToDateTimeInPersianCalendar(LastYear, LastMonth, startDay), Month.Offset);
 
             int col = 0, row = 0;
-            for (var i = 0; i < 42; i++, col++)
+            for (var i = 0; i < 42; i++, col++, curDate = curDate.AddDays(1))
             {
                 if (i > 0 && col % 7 == 0)
                 {
@@ -61,22 +72,10 @@ namespace BlazorDateRangePicker
                     row++;
                 }
 
+                var day = new DateTimeOffset(Month.ToDateTimeInPersianCalendar(curDate.YearInPersianCalendar(), curDate.MonthInPersianCalendar(), curDate.DayInPersianCalendar()), Month.Offset);
                 if (calendar[row].Count <= col)
-                    calendar[row].Add(new CalendarItem { Side = Side });
-
-                var outOfRange =
-                    (Month.Year == 1 && Month.Month == 1 && startDayOffset + i < 0) ||
-                    (Month.Year == 9999 && Month.Month == 12 && startDayOffset + i >= DaysInMonth);
-
-                calendar[row][col].OutOfRange = outOfRange;
-
-                if (outOfRange)
-                {
-                    continue;
-                }
-
-                var day = new DateTimeOffset(Month.Year, Month.Month, 1, 12, 0, 0, TimeSpan.Zero).AddDays(startDayOffset + i);
-                if (calendar[row][col].Day != day)
+                    calendar[row].Add(new CalendarItem { Day = day, Side = Side });
+                else if (calendar[row][col].Day != day)
                     calendar[row][col].Day = day;
 
                 await UpdateCellClasses(calendar[row][col]);
@@ -94,24 +93,24 @@ namespace BlazorDateRangePicker
             { classes.Add("today"); }
 
             // Highlight weekends
-            if (dt.DayOfWeek == DayOfWeek.Saturday || dt.DayOfWeek == DayOfWeek.Sunday)
+            if (dt.DayOfWeek == DayOfWeek.Thursday || dt.DayOfWeek == DayOfWeek.Friday)
             { classes.Add("weekend"); }
 
             // Grey out the dates in other months displayed at beginning and end of this calendar
-            if (dt.Month != Month.Month)
+            if (dt.MonthInPersianCalendar() != Month.MonthInPersianCalendar())
             {
                 classes.Add("off");
                 classes.Add("ends");
             }
             // Don't allow selection of dates before the minimum date
-            if (Picker.MinDate.HasValue && dt.Date < Picker.MinDate.Value.Date)
+            if (Picker.MinDate.HasValue && dt < Picker.MinDate)
             {
                 classes.Add("off");
                 classes.Add("disabled");
                 disabled = true;
             }
             // Don't allow selection of dates after the maximum date
-            if (Picker.MaxDate.HasValue && dt.Date > Picker.MaxDate.Value.Date)
+            if (Picker.MaxDate.HasValue && dt > Picker.MaxDate)
             {
                 classes.Add("off");
                 classes.Add("disabled");
@@ -224,6 +223,5 @@ namespace BlazorDateRangePicker
         public Action Click { get; set; }
         public string ClassNames { get; set; }
         public bool Disabled { get; set; }
-        public bool OutOfRange { get; set; }
     }
 }

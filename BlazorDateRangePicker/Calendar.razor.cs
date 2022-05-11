@@ -24,28 +24,26 @@ namespace BlazorDateRangePicker
         [Parameter] public EventCallback<DateTimeOffset> OnClickDate { get; set; }
         [Parameter] public EventCallback<DateTimeOffset> OnHoverDate { get; set; }
 
-        private int MinYear => Picker.MinDate?.Year ?? 1950;
-        private int MaxYear => Picker.MaxDate?.Year ?? DateTime.Now.AddYears(50).Year;
+        private int MinYear => Picker.MinDate?.YearInPersianCalendar() ?? 1350;
+        private int MaxYear => Picker.MaxDate?.YearInPersianCalendar() ?? ((DateTimeOffset)DateTime.Now.AddYears(50)).YearInPersianCalendar();
 
         private int CurrentMonth
         {
-            get => CalendarData.Month.Month;
+            get => CalendarData.Month.MonthInPersianCalendar();
             set => MonthSelected(value);
         }
 
         private int CurrentYear
         {
-            get => CalendarData.Month.Year;
+            get => CalendarData.Month.YearInPersianCalendar();
             set => YearSelected(value);
         }
 
         private bool PrevBtnVisible =>
             (!Picker.MinDate.HasValue || Picker.MinDate < CalendarData.FirstDay)
-            && CalendarData.FirstDay.Date > DateTime.MinValue.Date
             && (Picker.LinkedCalendars != true || Side == SideType.Left);
         private bool NextBtnVisible =>
             (!Picker.MaxDate.HasValue || Picker.MaxDate > CalendarData.LastDay)
-            && CalendarData.LastDay.Date < DateTime.MaxValue.Date
             && (Picker.LinkedCalendars != true || Side == SideType.Right || Picker.SingleDatePicker == true);
 
         private List<string> DayNames { get; set; } = new List<string>();
@@ -71,28 +69,26 @@ namespace BlazorDateRangePicker
             DayNames = GetDayNames();
         }
 
-        private Task PreviousMonth(bool enabled)
+        private Task PreviousMonth()
         {
-            if (!enabled) return Task.CompletedTask;
-            return OnMonthChanged.InvokeAsync(CalendarData.Month.Subtract(CalendarData.Month.Offset).ToOffset(TimeSpan.Zero).AddMonths(-1));
+            return OnMonthChanged.InvokeAsync(CalendarData.Month.AddMonthsInPersianCalendar(-1));
         }
 
-        private Task NextMonth(bool enabled)
+        private Task NextMonth()
         {
-            if (!enabled) return Task.CompletedTask;
-            return OnMonthChanged.InvokeAsync(CalendarData.Month.Subtract(CalendarData.Month.Offset).ToOffset(TimeSpan.Zero).AddMonths(1));
+            return OnMonthChanged.InvokeAsync(CalendarData.Month.AddMonthsInPersianCalendar(1));
         }
 
         private Task MonthSelected(int month)
         {
             var d = CalendarData.Month;
-            return OnMonthChanged.InvokeAsync(new DateTime(d.Year, month, 1, 12, 0, 0));
+            return OnMonthChanged.InvokeAsync(d.ToDateTimeInPersianCalendar(d.YearInPersianCalendar(), month, 1));
         }
 
         private Task YearSelected(int year)
         {
             var d = CalendarData.Month;
-            var newMonth = new DateTimeOffset(year, d.Month, 1, 12, 0, 0, d.Offset);
+            var newMonth = new DateTimeOffset(d.ToDateTimeInPersianCalendar(year, d.MonthInPersianCalendar(), 1), d.Offset);
             if (newMonth > Picker.MaxDate) newMonth = Picker.MaxDate.Value;
             else if (newMonth < Picker.MinDate) newMonth = Picker.MinDate.Value;
             return OnMonthChanged.InvokeAsync(newMonth);
